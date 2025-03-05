@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Jeu de Rôle - Alex</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        #personnage { font-size: 18px; margin-bottom: 10px; }
+        #histoire { width: 100%; height: 300px; border: 1px solid #ccc; padding: 10px; overflow-y: scroll; background: white; }
+        #action { width: 80%; padding: 5px; }
+        #boutons { margin-top: 10px; }
+        button { padding: 5px 10px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <div id="personnage">Personnage : Alex | F:8 I:14 D:11 S:12 C:15 Con:10</div>
+    <div id="histoire">Je marche dans une rue calme le soir. Un chat gris me fixe depuis un muret et miaule doucement. Des pas approchent derrière moi. Que fais-je ?</div>
+    <input type="text" id="action" placeholder="Tape ton action ici" onkeypress="if(event.key === 'Enter') traiterAction()">
+    <div id="boutons">
+        <button onclick="tester('Force')">Tester Force</button>
+        <button onclick="tester('Intelligence')">Tester Intelligence</button>
+        <button onclick="tester('Dextérité')">Tester Dextérité</button>
+        <button onclick="tester('Sagesse')">Tester Sagesse</button>
+        <button onclick="tester('Charisme')">Tester Charisme</button>
+        <button onclick="tester('Constitution')">Tester Constitution</button>
+        <button onclick="sauvegarder()">Sauvegarder</button>
+        <button onclick="copierResume()">Copier Résumé</button>
+    </div>
+
+    <script>
+        const personnage = {
+            Nom: "Alex",
+            Force: 8,
+            Intelligence: 14,
+            Dextérité: 11,
+            Sagesse: 12,
+            Charisme: 15,
+            Constitution: 10,
+            Inventaire: ["Téléphone portable", "Paquet de croquettes", "Veste en jean"],
+            Transformé: false,
+            Progression: 0
+        };
+
+        function lancerDe() {
+            return Math.floor(Math.random() * 20) + 1;
+        }
+
+        function tester(carac) {
+            const valeur = personnage[carac];
+            const lancer = lancerDe();
+            const succes = lancer <= valeur;
+            const histoire = document.getElementById("histoire");
+            histoire.innerHTML += `<br>Test ${carac} : ${lancer} ${succes ? "<=" : ">"} ${valeur} - ${succes ? "Succès" : "Échec"}`;
+            if (carac === "Charisme" && succes && !personnage.Transformé) {
+                personnage.Transformé = true;
+                histoire.innerHTML += "<br>Je me transforme en furry female cat !";
+            }
+            histoire.scrollTop = histoire.scrollHeight;
+            updatePersonnage();
+            return succes;
+        }
+
+        function traiterAction() {
+            const action = document.getElementById("action").value.trim();
+            const histoire = document.getElementById("histoire");
+            histoire.innerHTML += `<br>> ${action}`;
+            personnage.Progression++;
+            document.getElementById("action").value = "";
+            histoire.innerHTML += "<br>(Copie la réponse de Grok ici)";
+            updatePersonnage();
+            histoire.scrollTop = histoire.scrollHeight;
+        }
+
+        function updatePersonnage() {
+            const etat = personnage.Transformé ? " (Furry Cat)" : "";
+            document.getElementById("personnage").innerText = 
+                `Personnage : ${personnage.Nom}${etat} | F:${personnage.Force} I:${personnage.Intelligence} D:${personnage.Dextérité} S:${personnage.Sagesse} C:${personnage.Charisme} Con:${personnage.Constitution}`;
+        }
+
+        function sauvegarder() {
+            const data = JSON.stringify(personnage);
+            localStorage.setItem("sauvegarde", data);
+            const histoire = document.getElementById("histoire");
+            histoire.innerHTML += "<br>Sauvegarde effectuée !";
+            histoire.scrollTop = histoire.scrollHeight;
+        }
+
+        function copierResume() {
+            const resume = `Résumé : Progression ${personnage.Progression}\n` +
+                           `Personnage : ${JSON.stringify(personnage)}\n` +
+                           `Dernière histoire : ${document.getElementById("histoire").innerText.slice(-200)}`;
+            navigator.clipboard.writeText(resume);
+            alert("Résumé copié dans le presse-papiers ! Colle-le à Grok.");
+        }
+
+        // Charger au démarrage
+        const sauvegarde = localStorage.getItem("sauvegarde");
+        if (sauvegarde) {
+            Object.assign(personnage, JSON.parse(sauvegarde));
+            updatePersonnage();
+            document.getElementById("histoire").innerHTML += "<br>Sauvegarde chargée !";
+        }
+    </script>
+</body>
+</html>
